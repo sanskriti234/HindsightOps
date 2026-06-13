@@ -14,3 +14,16 @@ class IncidentSchema(BaseModel):
     resolution: str = Field(..., description="The exact step-by-step actions executed to mitigate and remediate the issue")
     postmortem: str = Field(..., description="Detailed SRE analysis including architectural vulnerabilities and propagation vectors")
     preventive_actions: List[str] = Field(..., description="Long-term engineering task items required to eliminate the blast radius permanently")
+
+class DiagnoseRequest(BaseModel):
+    symptoms: List[str]
+    logs: List[str]
+    service: str
+
+class DiagnoseResponse(BaseModel):
+    diagnosis: str
+    root_cause: str
+    recommended_resolution: str
+    confidence_score: float
+    retrieved_memory_ids: List[str]
+    reasoning: str
