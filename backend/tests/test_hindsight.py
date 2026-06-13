@@ -1,6 +1,5 @@
 from services.hindsight_service import (
-    HindsightService
-)
+hindsight_service)
 
 from models.incident import (
     Incident,
@@ -10,7 +9,7 @@ from models.incident import (
 
 def test_hindsight_retain_and_recall():
 
-    service = HindsightService()
+    service = hindsight_service
 
     incident = Incident(
         incident_id="INC-2026-999",

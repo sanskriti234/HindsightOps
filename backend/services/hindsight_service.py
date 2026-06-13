@@ -277,3 +277,7 @@ Find incidents with:
             "similar_incidents":
                 incidents
         }
+
+# Singleton instance
+
+hindsight_service = HindsightService()

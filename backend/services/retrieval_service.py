@@ -2,7 +2,7 @@ from typing import Dict, Any
 import logging
 
 from services.hindsight_service import (
-    HindsightService
+    hindsight_service
 )
 
 from services.llm_service import (
@@ -20,7 +20,7 @@ class RetrievalEngine:
     def __init__(self):
 
         self.hindsight_service = (
-            HindsightService()
+            hindsight_service
         )
 
     def diagnose(
