@@ -1,9 +1,12 @@
 import os
 from typing import Any, Dict, List
 
-from hindsight import HindsightClient
-from models.incident import Incident
+from flask.cli import load_dotenv
 
+from hindsight_client import Hindsight
+from models.incident import Incident
+from dotenv import load_dotenv
+load_dotenv()
 
 class HindsightService:
 
@@ -18,7 +21,7 @@ class HindsightService:
                 "HINDSIGHT_API_KEY missing"
             )
 
-        self.client = HindsightClient(
+        self.client = Hindsight(
             base_url=os.getenv(
                 "HINDSIGHT_API_URL",
                 "https://api.hindsight.vectorize.io"
@@ -94,44 +97,29 @@ Postmortem:
         )
 
         metadata = {
-            "incident_id":
-                incident.incident_id,
+            "incident_id": incident.incident_id,
+            "category": incident.incident_category,
+            "severity": incident.severity.value,
+            "status": incident.status.value,
 
-            "category":
-                incident.incident_category,
+            "services": ",".join(
+                incident.affected_services
+            ),
 
-            "severity":
-                incident.severity.value,
+            "symptoms": ",".join(
+                incident.symptoms
+            ),
 
-            "status":
-                incident.status.value,
+            "tags": ",".join(
+                incident.tags
+            ),
 
-            "services":
-                incident.affected_services,
-
-            "services_text":
-                ",".join(
-                    incident.affected_services
-                ),
-
-            "symptoms":
-                incident.symptoms,
-
-            "symptoms_text":
-                ",".join(
-                    incident.symptoms
-                ),
+            "reporter": incident.reporter,
 
             "timestamp":
-                incident.timestamp.isoformat(),
-
-            "reporter":
-                incident.reporter,
-
-            "tags":
-                incident.tags
+                incident.timestamp.isoformat()
         }
-
+        print(metadata)
         self.client.retain(
             bank_id=self.bank_id,
             document_id=incident.incident_id,
@@ -196,7 +184,8 @@ Find incidents with:
                 results
             )
         )
-
+        print(type(results))
+        print(results)
         incidents = []
 
         for item in results[:limit]:
