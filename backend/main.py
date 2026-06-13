@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 import logging
-
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
-
+from services.agent_service import (
+    incident_agent
+)
 from models.incident import Incident
 from services.hindsight_service import (
-    hindsight_service
+    hindsight_service as hs_service
 )
 from services.retrieval_service import (
     RetrievalEngine
@@ -39,7 +41,7 @@ async def lifespan(app: FastAPI):
         )
 
         hindsight_service = (
-            hindsight_service
+            hs_service
         )
 
         retrieval_engine = (
@@ -191,6 +193,121 @@ def search_incidents(
             "results":
                 results
         }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+class InsightQuery(BaseModel):
+    query: str
+
+@app.post("/agent/reflect")
+def reflect_query(
+    request: InsightQuery
+):
+
+    try:
+
+        answer = (
+            hindsight_service.client.reflect(
+                bank_id=
+                hindsight_service.bank_id,
+
+                query=
+                request.query
+            )
+        )
+
+        return {
+            "query":
+                request.query,
+
+            "answer":
+                answer
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+
+class AgentQuery(
+    BaseModel
+):
+    query: str
+
+@app.post("/agent/query")
+def query_agent(
+    request: AgentQuery
+):
+
+    return (
+        incident_agent.answer(
+            request.query
+        )
+    )
+
+
+class MentalModelRequest(
+    BaseModel
+):
+    name: str
+    source_query: str
+
+@app.post("/mental-models")
+def create_model(
+    request: MentalModelRequest
+):
+
+    try:
+
+        result = (
+            hindsight_service.client
+            .create_mental_model(
+                bank_id=
+                hindsight_service.bank_id,
+
+                name=
+                request.name,
+
+                source_query=
+                request.source_query
+            )
+        )
+
+        return {
+            "operation_id":
+                result.operation_id
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.get("/mental-models")
+def list_models():
+
+    try:
+
+        models = (
+            hindsight_service.client
+            .list_mental_models(
+                bank_id=
+                hindsight_service.bank_id
+            )
+        )
+
+        return models
 
     except Exception as e:
 
