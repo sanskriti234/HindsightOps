@@ -1,4 +1,10 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import (
+    BaseModel,
+    Field,
+    field_validator,
+    ConfigDict
+)
+
 from typing import List
 from datetime import datetime, UTC
 from enum import Enum
@@ -20,20 +26,28 @@ class IncidentStatus(str, Enum):
 
 
 class Incident(BaseModel):
+
     model_config = ConfigDict(
         populate_by_name=True
     )
 
     incident_id: str
 
-    incident_summary: str
+    incident_summary: str = Field(
+        ...,
+        min_length=10
+    )
 
     incident_category: str = Field(
         ...,
         alias="category"
     )
 
-    subcategory: str
+    root_cause: str
+
+    resolution: str
+
+    postmortem: str
 
     severity: Severity
 
@@ -42,36 +56,52 @@ class Incident(BaseModel):
         alias="service"
     )
 
-    symptoms: List[str]
+    symptoms: List[str] = Field(
+        default_factory=list
+    )
 
-    logs: List[str]
-
-    root_cause: str
-
-    resolution: str
-
-    postmortem: str
-
-    preventive_actions: List[str]
+    logs: List[str] = Field(
+        default_factory=list
+    )
 
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(UTC)
     )
 
-    status: IncidentStatus = IncidentStatus.RESOLVED
+    status: IncidentStatus = (
+        IncidentStatus.RESOLVED
+    )
 
     reporter: str = "system-agent"
 
-    tags: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(
+        default_factory=list
+    )
 
     @field_validator("incident_id")
     @classmethod
-    def validate_id_format(cls, value):
+    def validate_id(cls, value):
+
         pattern = r"^INC-\d{4}-\d{3,6}$"
 
         if not re.match(pattern, value):
             raise ValueError(
-                "incident_id must follow INC-YYYY-XXX"
+                "Invalid incident id format"
             )
+
+        return value
+
+    @field_validator(
+        "affected_services",
+        mode="before"
+    )
+    @classmethod
+    def normalize_services(
+        cls,
+        value
+    ):
+
+        if isinstance(value, str):
+            return [value]
 
         return value
