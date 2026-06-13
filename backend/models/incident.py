@@ -6,7 +6,7 @@ from pydantic import (
 )
 
 from typing import List
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 import re
 
@@ -65,7 +65,7 @@ class Incident(BaseModel):
     )
 
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
+        default_factory=lambda: datetime.now(timezone.utc)
     )
 
     status: IncidentStatus = (
