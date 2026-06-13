@@ -1,0 +1,6 @@
+.env
+venv/
+__pycache__/
+services/
+test/
+api/
