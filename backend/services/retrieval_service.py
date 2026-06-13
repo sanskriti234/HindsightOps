@@ -31,13 +31,13 @@ class RetrievalEngine:
         try:
 
             logger.info(
-                f"Diagnosing "
-                f"{incident.incident_id}"
+                "Diagnosing incident %s",
+                incident.incident_id
             )
 
-            # --------------------------
-            # Single Recall
-            # --------------------------
+            # ---------------------------------
+            # Retrieve Similar Incidents
+            # ---------------------------------
 
             similar_incidents = (
                 self.hindsight_service
@@ -51,13 +51,34 @@ class RetrievalEngine:
                     summary=
                     incident.incident_summary,
 
-                    limit=3
+                    limit=5
                 )
             )
 
-            # --------------------------
-            # Build Context
-            # --------------------------
+            # ---------------------------------
+            # Remove Self-Matches
+            # ---------------------------------
+
+            similar_incidents = [
+
+                item
+
+                for item
+                in similar_incidents
+
+                if item.get(
+                    "incident_id"
+                ) != incident.incident_id
+            ]
+
+            logger.info(
+                "Retrieved %s historical matches",
+                len(similar_incidents)
+            )
+
+            # ---------------------------------
+            # Build RCA Context
+            # ---------------------------------
 
             rca_context = (
                 self.hindsight_service
@@ -66,9 +87,9 @@ class RetrievalEngine:
                 )
             )
 
-            # --------------------------
-            # LLM RCA
-            # --------------------------
+            # ---------------------------------
+            # LLM Diagnosis
+            # ---------------------------------
 
             diagnosis = (
                 llm_service
@@ -81,11 +102,15 @@ class RetrievalEngine:
                 )
             )
 
-            diagnosis[
-                "source_incident_ids"
-            ] = [
+            # ---------------------------------
+            # Traceability
+            # ---------------------------------
 
-                item["incident_id"]
+            source_ids = list({
+
+                item.get(
+                    "incident_id"
+                )
 
                 for item
                 in similar_incidents
@@ -93,12 +118,16 @@ class RetrievalEngine:
                 if item.get(
                     "incident_id"
                 )
-            ]
+            })
+
+            diagnosis[
+                "source_incident_ids"
+            ] = source_ids
 
             diagnosis[
                 "historical_matches"
             ] = len(
-                similar_incidents
+                source_ids
             )
 
             return diagnosis
@@ -119,9 +148,17 @@ class RetrievalEngine:
                 "rationale":
                     str(e),
 
+                "recommended_resolution":
+                    "Manual investigation required",
+
                 "source_incident_ids":
                     [],
 
                 "historical_matches":
                     0
             }
+
+
+retrieval_engine = (
+    RetrievalEngine()
+)

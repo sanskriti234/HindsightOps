@@ -1,12 +1,17 @@
 import os
+import re
+import logging
 from typing import Any, Dict, List
 
-from flask.cli import load_dotenv
+from dotenv import load_dotenv
 
 from hindsight_client import Hindsight
 from models.incident import Incident
-from dotenv import load_dotenv
+
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 
 class HindsightService:
 
@@ -97,29 +102,45 @@ Postmortem:
         )
 
         metadata = {
-            "incident_id": incident.incident_id,
-            "category": incident.incident_category,
-            "severity": incident.severity.value,
-            "status": incident.status.value,
+            "incident_id":
+                incident.incident_id,
 
-            "services": ",".join(
-                incident.affected_services
-            ),
+            "category":
+                incident.incident_category,
 
-            "symptoms": ",".join(
-                incident.symptoms
-            ),
+            "severity":
+                incident.severity.value,
 
-            "tags": ",".join(
-                incident.tags
-            ),
+            "status":
+                incident.status.value,
 
-            "reporter": incident.reporter,
+            "services":
+                ",".join(
+                    incident.affected_services
+                ),
+
+            "symptoms":
+                ",".join(
+                    incident.symptoms
+                ),
+
+            "tags":
+                ",".join(
+                    incident.tags
+                ),
+
+            "reporter":
+                incident.reporter,
 
             "timestamp":
                 incident.timestamp.isoformat()
         }
-        print(metadata)
+
+        logger.info(
+            "Storing incident %s",
+            incident.incident_id
+        )
+
         self.client.retain(
             bank_id=self.bank_id,
             document_id=incident.incident_id,
@@ -128,25 +149,6 @@ Postmortem:
         )
 
         return True
-
-    def _extract_documents(
-        self,
-        results
-    ):
-
-        if hasattr(results, "documents"):
-            return results.documents
-
-        if hasattr(results, "memories"):
-            return results.memories
-
-        if hasattr(results, "items"):
-            return results.items
-
-        if isinstance(results, list):
-            return results
-
-        return []
 
     def recall_similar_incidents(
         self,
@@ -173,96 +175,88 @@ Find incidents with:
 - similar resolutions
 """.strip()
 
+        logger.info(
+            "Searching Hindsight memory"
+        )
+
         results = self.client.recall(
             bank_id=self.bank_id,
             query=query,
             budget="high"
         )
 
-        results = (
-            self._extract_documents(
-                results
-            )
-        )
-        print(type(results))
-        print(results)
+        # Hindsight SDK returns RecallResponse
+        if hasattr(results, "results"):
+            results = results.results
+
         incidents = []
 
         for item in results[:limit]:
 
-            if isinstance(item, dict):
+            memory_text = getattr(
+                item,
+                "text",
+                ""
+            )
 
-                incidents.append({
-                    "incident_id":
-                        item.get(
-                            "document_id"
-                        ),
+            match = re.search(
+                r"INC-\d{4}-\d{3,6}",
+                memory_text
+            )
 
-                    "memory":
-                        item.get(
-                            "content",
-                            ""
-                        )[:3000],
+            incident_id = (
+                match.group(0)
+                if match
+                else None
+            )
 
-                    "score":
-                        item.get(
-                            "score",
-                            0.0
-                        ),
+            incidents.append({
+                "incident_id":
+                    incident_id,
 
-                    "metadata":
-                        item.get(
-                            "metadata",
-                            {}
-                        )
-                })
+                "memory_id":
+                    getattr(
+                        item,
+                        "id",
+                        None
+                    ),
 
-            else:
+                "memory_type":
+                    getattr(
+                        item,
+                        "type",
+                        None
+                    ),
 
-                incidents.append({
-                    "incident_id":
-                        getattr(
-                            item,
-                            "document_id",
-                            None
-                        ),
+                "memory":
+                    memory_text[:3000],
 
-                    "memory":
-                        getattr(
-                            item,
-                            "content",
-                            ""
-                        )[:3000],
+                "score":
+                    getattr(
+                        item,
+                        "score",
+                        0.0
+                    )
+            })
 
-                    "score":
-                        getattr(
-                            item,
-                            "score",
-                            0.0
-                        ),
-
-                    "metadata":
-                        getattr(
-                            item,
-                            "metadata",
-                            {}
-                        )
-                })
+        logger.info(
+            "Retrieved %s memories",
+            len(incidents)
+        )
 
         return incidents
 
     def build_rca_context(
         self,
         incidents: List[Dict]
-    ):
+    ) -> Dict[str, Any]:
 
         categories = sorted({
-            i["metadata"].get(
+            incident.get(
                 "category"
             )
-            for i in incidents
-            if i.get("metadata")
-            and i["metadata"].get(
+            for incident in incidents
+            if incident.get(
                 "category"
             )
         })
@@ -278,6 +272,7 @@ Find incidents with:
                 incidents
         }
 
-# Singleton instance
 
-hindsight_service = HindsightService()
+hindsight_service = (
+    HindsightService()
+)
