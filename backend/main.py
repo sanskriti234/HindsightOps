@@ -19,7 +19,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.stats_service import (
     stats_service
 )
-
+from services.mental_model_service import (
+    mental_model_service
+)
 load_dotenv()
 
 logging.basicConfig(
@@ -285,7 +287,77 @@ def list_models():
             status_code=500,
             detail=str(e)
         )
-    
+
+@app.get(
+    "/mental-models/analytics"
+)
+def mental_model_analytics():
+
+    try:
+
+        models = (
+            mental_model_service
+            .list_models()
+        )
+
+        model_cards = []
+
+        for model in models.items:
+
+            model_cards.append({
+
+                "id":
+                    getattr(
+                        model,
+                        "id",
+                        None
+                    ),
+
+                "name":
+                    getattr(
+                        model,
+                        "name",
+                        "Unknown Model"
+                    ),
+
+                "status":
+                    getattr(
+                        model,
+                        "status",
+                        "ready"
+                    ),
+
+                "created_at":
+                    getattr(
+                        model,
+                        "created_at",
+                        None
+                    )
+            })
+
+        return {
+
+            "total_models":
+                len(
+                    model_cards
+                ),
+
+            "models":
+                model_cards
+        }
+
+    except Exception as e:
+
+        logger.exception(
+            "Mental model analytics failed"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
 @app.get("/dashboard/stats")
 def dashboard_stats():
 

@@ -5,7 +5,9 @@ import time
 from services.hindsight_service import hindsight_service
 from services.llm_service import llm_service
 from models.incident import Incident
-
+from services.mental_model_service import (
+    mental_model_service
+)
 logger = logging.getLogger(__name__)
 
 
@@ -172,6 +174,23 @@ class RetrievalEngine:
                 )
             )
 
+            matched_models = (
+                mental_model_service
+                .get_relevant_models(
+                    query
+                )
+            )
+
+            mental_models = {
+
+                "total_models":
+                    len(
+                        matched_models
+                    ),
+
+                "models":
+                    matched_models
+            }
             diagnosis = (
                 llm_service
                 .diagnose_outage(
@@ -198,6 +217,9 @@ class RetrievalEngine:
             )
 
             return {
+
+                "mentalModels":
+                    mental_models,
 
                 "executiveSummary":
                     diagnosis.get(

@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-
+import MentalModelCard
+from "@/components/MentalModelCard";
 import QueryAgent from "@/components/QueryAgent";
 import RCAResponse from "@/components/RCAResponse";
 
@@ -142,6 +143,72 @@ export default function DashboardPage() {
               />
 
             </div>
+
+            {result?.mentalModels?.models?.length > 0 && (
+
+              <div className="
+                rounded-2xl
+                border
+                border-purple-500/20
+                bg-purple-500/5
+                p-6
+              ">
+
+                <h2 className="text-xl font-semibold mb-4">
+                  🧠 Mental Models Applied
+                </h2>
+
+                <div className="space-y-3">
+
+                  {result.mentalModels.models.map(
+                    (model: any) => (
+
+                      <div
+                        key={model.id}
+                        className="
+                          rounded-xl
+                          bg-zinc-900
+                          p-4
+                          border
+                          border-zinc-800
+                        "
+                      >
+
+                        <div className="flex items-center justify-between">
+
+                          <h3 className="font-medium">
+                            {model.name}
+                          </h3>
+
+                          <span className="
+                            text-xs
+                            px-2
+                            py-1
+                            rounded-full
+                            bg-purple-500/20
+                            text-purple-300
+                          ">
+                            Match Score {model.score}
+                          </span>
+
+                        </div>
+
+                        <p className="
+                          text-zinc-400
+                          text-sm
+                          mt-2
+                        ">
+                          {model.content}
+                        </p>
+
+                      </div>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )}
 
             {/* RCA */}
 

@@ -47,12 +47,6 @@ const navigationItems = [
   // },
 
   // {
-  //   label: 'Agent Chat',
-  //   href: '/dashboard/agent',
-  //   icon: MessageSquare,
-  // },
-
-  // {
   //   label: 'System Health',
   //   href: '/dashboard/system',
   //   icon: Activity,

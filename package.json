@@ -1,0 +1,26 @@
+{
+  "name": "hindsightops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "frontend": "cd frontend && npm run dev",
+  "backend": "cd backend && venv\\Scripts\\python.exe -m uvicorn main:app --reload",
+  "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanskriti234/HindsightOps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sanskriti234/HindsightOps/issues"
+  },
+  "homepage": "https://github.com/sanskriti234/HindsightOps#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
