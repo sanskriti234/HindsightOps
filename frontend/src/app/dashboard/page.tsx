@@ -2,94 +2,312 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import SimilarIncidentCard from "@/components/SimilarIncidentCard";
+
 import QueryAgent from "@/components/QueryAgent";
 import RCAResponse from "@/components/RCAResponse";
-import IncidentAnalytics from "@/components/IncidentAnalytics";
 
 export default function DashboardPage() {
-  const [result, setResult] = useState<any>(null);
-  
+
+  const [result, setResult] =
+    useState<any>(null);
+
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+
+    <div className="min-h-screen bg-black text-white">
+
+      <div className="max-w-6xl mx-auto px-6 py-8 pb-40">
 
         {/* Header */}
+
         <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{
+            opacity: 0,
+            y: -20
+          }}
+          animate={{
+            opacity: 1,
+            y: 0
+          }}
+          className="mb-8"
         >
+
           <h1 className="text-4xl font-bold">
-            HindsightOps Dashboard
+            HindsightOps
           </h1>
 
           <p className="text-zinc-400 mt-2">
-            AI-Powered Incident Intelligence & Memory Recall
+            AI Incident Copilot powered by
+            Hindsight Memory
           </p>
+
         </motion.div>
 
-        {/* Query Agent */}
-        <QueryAgent onResult={setResult} />
+        {/* Empty State */}
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {!result && (
 
-          {/* RCA Panel */}
-          <div className="lg:col-span-2">
-            <RCAResponse data={result} />
-          </div>
-
-          {/* Analytics Placeholder */}
           <motion.div
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6"
+            initial={{
+              opacity: 0
+            }}
+            animate={{
+              opacity: 1
+            }}
+            className="
+              rounded-3xl
+              border
+              border-zinc-800
+              bg-zinc-950
+              p-12
+              text-center
+            "
           >
-            <h2 className="text-xl font-semibold mb-4">
-              Incident Analytics
+
+            <h2 className="text-3xl font-semibold mb-4">
+              Describe an Incident
             </h2>
 
-            <IncidentAnalytics
-              analytics={result?.analytics}
-            />
+            <p className="text-zinc-400 max-w-2xl mx-auto">
+              Investigate outages, deployment failures,
+              security incidents, Kubernetes issues,
+              database problems, networking failures,
+              and operational events using historical
+              organizational memory.
+            </p>
+
           </motion.div>
+
+        )}
+
+        {/* Results */}
+
+        {result && (
+
+          <div className="space-y-6">
+
+            {/* Executive Summary */}
+
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 15
+              }}
+              animate={{
+                opacity: 1,
+                y: 0
+              }}
+              className="
+                rounded-3xl
+                border
+                border-blue-500/20
+                bg-gradient-to-r
+                from-blue-500/10
+                to-purple-500/10
+                p-6
+              "
+            >
+
+              <h2 className="text-xl font-semibold mb-3">
+                🧠 Executive Summary
+              </h2>
+
+              <p className="text-zinc-200 leading-relaxed">
+                {
+                  result.executiveSummary
+                  || result.answer
+                }
+              </p>
+
+            </motion.div>
+
+            {/* Metrics */}
+
+            <div className="grid md:grid-cols-3 gap-4">
+
+              <MetricCard
+                title="Confidence"
+                value={`${result.confidence}%`}
+              />
+
+              <MetricCard
+                title="Historical Matches"
+                value={
+                  result.similarIncidents?.length || 0
+                }
+              />
+
+              <MetricCard
+                title="Memory Source"
+                value="Hindsight"
+              />
+
+            </div>
+
+            {/* RCA */}
+
+            <RCAResponse
+              data={result}
+            />
+
+            {/* Historical Incidents */}
+
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 15
+              }}
+              animate={{
+                opacity: 1,
+                y: 0
+              }}
+              className="
+                rounded-3xl
+                border
+                border-zinc-800
+                bg-zinc-950
+                p-6
+              "
+            >
+
+              <div className="flex items-center justify-between mb-6">
+
+                <h2 className="text-xl font-semibold">
+                  📚 Historical Memory Retrieval
+                </h2>
+
+                <span className="text-xs text-blue-400">
+                  Hindsight Cloud Bank
+                </span>
+
+              </div>
+
+              <div className="space-y-5">
+
+                {result.similarIncidents?.map(
+                  (
+                    incident: any,
+                    index: number
+                  ) => (
+
+                    <div
+                      key={`${incident.incident_id}-${index}`}
+                      className="
+                        border-l-2
+                        border-blue-500
+                        pl-5
+                        py-1
+                      "
+                    >
+
+                      <div className="flex items-center gap-3">
+
+                        <div
+                          className="
+                            h-2
+                            w-2
+                            rounded-full
+                            bg-blue-500
+                          "
+                        />
+
+                        <span className="font-medium">
+                          {
+                            incident.incident_id
+                          }
+                        </span>
+
+                      </div>
+
+                      <p
+                        className="
+                          text-zinc-400
+                          text-sm
+                          mt-2
+                          leading-relaxed
+                        "
+                      >
+                        {
+                          incident.summary ||
+                          incident.memory?.slice(0, 300)
+                        }
+                      </p>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </motion.div>
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* Fixed Query Bar */}
+
+      <div
+        className="
+          fixed
+          bottom-0
+          left-0
+          right-0
+          border-t
+          border-zinc-800
+          bg-black/90
+          backdrop-blur-xl
+          p-4
+          z-50
+        "
+      >
+
+        <div className="max-w-6xl mx-auto">
+
+          <QueryAgent
+            onResult={setResult}
+          />
 
         </div>
 
-        {/* Similar Incidents */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">
-              Similar Historical Incidents
-            </h2>
-
-            <span className="text-sm text-blue-400">
-              Powered by Hindsight Memory
-            </span>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            {result?.similarIncidents?.map(
-              (incident: any, index: number) => (
-                <SimilarIncidentCard
-                  key={`${incident.incident_id}-${index}`}
-                  incident={incident}
-                />
-              )
-            )}
-          </div>
-        </motion.div>
-
       </div>
-    </div>
-  );
 
-  
+    </div>
+
+  );
+}
+
+function MetricCard({
+  title,
+  value
+}: {
+  title: string;
+  value: string | number;
+}) {
+
+  return (
+
+    <div
+      className="
+        rounded-2xl
+        border
+        border-zinc-800
+        bg-zinc-950
+        p-5
+      "
+    >
+
+      <p className="text-sm text-zinc-400">
+        {title}
+      </p>
+
+      <p className="text-2xl font-bold mt-2">
+        {value}
+      </p>
+
+    </div>
+
+  );
 }

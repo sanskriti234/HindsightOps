@@ -103,44 +103,34 @@ Postmortem:
         )
 
         metadata = {
+
             "incident_id":
                 incident.incident_id,
 
             "category":
                 incident.incident_category,
 
+            "summary":
+                incident.incident_summary,
+
+            "root_cause":
+                incident.root_cause,
+
+            "resolution":
+                incident.resolution,
+
             "severity":
                 incident.severity.value,
 
             "status":
-                incident.status.value,
-
-            "services":
-                ",".join(
-                    incident.affected_services
-                ),
-
-            "symptoms":
-                ",".join(
-                    incident.symptoms
-                ),
-
-            "tags":
-                ",".join(
-                    incident.tags
-                ),
-
-            "reporter":
-                incident.reporter,
-
-            "timestamp":
-                incident.timestamp.isoformat()
+                incident.status.value
         }
 
         logger.info(
             "Storing incident %s",
             incident.incident_id
         )
+        
 
         self.client.retain(
             bank_id=self.bank_id,
@@ -212,68 +202,135 @@ Postmortem:
         return True
 
     def recall_similar_incidents(
-        self,
-        category: str,
-        symptoms: List[str],
-        summary: str,
-        limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    self,
+    category: str,
+    symptoms: List[str],
+    summary: str,
+) -> List[Dict[str, Any]]:
 
         query = f"""
-Category:
-{category}
+    Category:
+    {category}
 
-Summary:
-{summary}
+    Summary:
+    {summary}
 
-Symptoms:
-{", ".join(symptoms)}
+    Symptoms:
+    {", ".join(symptoms)}
 
-Find incidents with:
-- similar symptoms
-- similar outages
-- similar root causes
-- similar resolutions
-""".strip()
+    Find:
+    - similar incidents
+    - related outages
+    - matching root causes
+    - matching resolutions
+    """.strip()
 
         logger.info(
             "Searching Hindsight memory"
         )
 
-        results = self.client.recall(
+        response = self.client.recall(
             bank_id=self.bank_id,
             query=query,
             budget="high"
         )
 
-        # Hindsight SDK returns RecallResponse
-        if hasattr(results, "results"):
-            results = results.results
+        results = getattr(
+            response,
+            "results",
+            response
+        )
 
         incidents = []
 
-        for item in results[:limit]:
+        for index, item in enumerate(
+            results[:]
+        ):
 
-            memory_text = getattr(
+            # ---------- DEBUG ----------
+            logger.info(
+                "Recall Item %s: %s",
+                index,
+                item
+            )
+            logger.info(
+            "RAW ITEM = %s",
+            item
+        )
+            logger.info(
+            "METADATA = %s",
+            getattr(
                 item,
-                "text",
-                ""
+                "metadata",
+                {}
             )
+        )
 
-            match = re.search(
-                r"INC-\d{4}-\d{3,6}",
-                memory_text
-            )
+            # ---------- Text ----------
 
-            incident_id = (
-                match.group(0)
-                if match
-                else None
-            )
+            memory_text = ""
+
+            if hasattr(item, "text"):
+                memory_text = item.text
+
+            elif hasattr(item, "content"):
+                memory_text = item.content
+
+            elif isinstance(item, dict):
+                memory_text = (
+                    item.get("text")
+                    or item.get("content")
+                    or ""
+                )
+
+            # ---------- Score ----------
+
+            score = 0.0
+
+            if hasattr(item, "score"):
+                score = item.score or 0.0
+
+            elif hasattr(item, "similarity"):
+                score = item.similarity or 0.0
+
+            elif isinstance(item, dict):
+                score = (
+                    item.get("score")
+                    or item.get("similarity")
+                    or 0.0
+                )
+
+            # ---------- Metadata ----------
+
+            metadata = {}
+
+            if hasattr(item, "metadata"):
+                metadata = (
+                    item.metadata
+                    or {}
+                )
+
+            elif isinstance(item, dict):
+                metadata = (
+                    item.get("metadata")
+                    or {}
+                )
 
             incidents.append({
+
                 "incident_id":
-                    incident_id,
+
+                    metadata.get(
+                        "incident_id"
+                    )
+
+                    or getattr(
+                        item,
+                        "id",
+                        None
+                    )
+
+                    or f"MEM-{index}",
 
                 "memory_id":
                     getattr(
@@ -282,22 +339,40 @@ Find incidents with:
                         None
                     ),
 
-                "memory_type":
-                    getattr(
-                        item,
-                        "type",
-                        None
+                "memory":
+                    memory_text,
+
+                "summary":
+
+                    metadata.get(
+                        "summary"
+                    )
+
+                    or memory_text[:1000],
+
+                "incident_category":
+
+                    metadata.get(
+                        "category",
+                        "General"
                     ),
 
-                "memory":
-                    memory_text[:3000],
+                "root_cause":
+
+                    metadata.get(
+                        "root_cause",
+                        "Unknown"
+                    ),
+
+                "resolution":
+
+                    metadata.get(
+                        "resolution",
+                        "Unknown"
+                    ),
 
                 "score":
-                    getattr(
-                        item,
-                        "score",
-                        0.0
-                    )
+                    float(score)
             })
 
         logger.info(

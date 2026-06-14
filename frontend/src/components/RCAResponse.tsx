@@ -10,11 +10,11 @@ import {
 
 interface RCAResponseProps {
   data?: {
-    answer: string;
+    executiveSummary: string;
+    incidentAssessment: string;
     rootCause: string;
     resolution: string;
     confidence: number;
-    postmortem?: string;
   } | null;
 }
 
@@ -60,78 +60,77 @@ export default function RCAResponse({
         </div>
       </div>
 
-      {/* AI Summary */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Brain
-            size={18}
-            className="text-purple-400"
-          />
+      {/* Executive Summary */}
 
-          <h3 className="font-medium">
-            AI Incident Assessment
-          </h3>
-        </div>
+      <div className="mb-6">
+
+        <h3 className="font-medium mb-3">
+          🧠 Executive Summary
+        </h3>
 
         <div className="rounded-xl bg-zinc-900 p-4 border border-zinc-800">
-          <p className="text-zinc-200 leading-relaxed">
-            {data.answer}
+
+          <p className="leading-relaxed text-zinc-200">
+            {data.executiveSummary}
           </p>
+
         </div>
+
+      </div>
+
+      {/* Assessment */}
+
+      <div className="mb-6">
+
+        <h3 className="font-medium mb-3">
+          🔍 Incident Assessment
+        </h3>
+
+        <div className="rounded-xl bg-zinc-900 p-4 border border-zinc-800">
+
+          <p className="whitespace-pre-line">
+            {data.incidentAssessment}
+          </p>
+
+        </div>
+
       </div>
 
       {/* Root Cause */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <AlertTriangle
-            size={18}
-            className="text-yellow-400"
-          />
 
-          <h3 className="font-medium">
-            Root Cause
-          </h3>
-        </div>
+      <div className="mb-6">
+
+        <h3 className="font-medium mb-3">
+          ⚠️ Most Likely Root Cause
+        </h3>
 
         <div className="rounded-xl bg-zinc-900 p-4 border border-zinc-800">
-          <p>{data.rootCause}</p>
+
+          <p className="leading-relaxed">
+            {data.rootCause}
+          </p>
+
         </div>
+
       </div>
 
       {/* Resolution */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <CheckCircle2
-            size={18}
-            className="text-green-400"
-          />
 
-          <h3 className="font-medium">
-            Recommended Resolution
-          </h3>
-        </div>
+      <div>
+
+        <h3 className="font-medium mb-3">
+          🛠 Recommended Actions
+        </h3>
 
         <div className="rounded-xl bg-zinc-900 p-4 border border-zinc-800">
+
           <p className="whitespace-pre-line">
             {data.resolution}
           </p>
+
         </div>
+
       </div>
-
-      {/* Postmortem */}
-      {data.postmortem && (
-        <div>
-          <h3 className="font-medium mb-2">
-            Preventive Recommendations
-          </h3>
-
-          <div className="rounded-xl bg-zinc-900 p-4 border border-zinc-800">
-            <p className="text-zinc-300">
-              {data.postmortem}
-            </p>
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 }
