@@ -371,6 +371,25 @@ Build institutional memory for operational events.
 
 Quickly identify recurring issues and solutions.
 
+Following a production deployment 30 minutes ago, users started reporting intermittent 502 errors when accessing the Customer API.
+
+Observations:
+
+- API latency increased from 120ms to 4.2s
+- PostgreSQL CPU usage increased from 35% to 92%
+- Connection acquisition timeouts observed
+- Error rate increased from 0.2% to 18%
+- Database connection pool utilization at 100%
+- Kubernetes pods remain healthy
+- No network packet loss detected
+
+Recent log entries:
+
+ERROR: timeout while acquiring database connection
+ERROR: connection pool exhausted
+WARNING: retrying transaction after timeout
+
+Please identify the most likely root cause, recommend immediate mitigation steps, and provide confidence level.
 ---
 
 ## Goals
