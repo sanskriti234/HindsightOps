@@ -13,6 +13,12 @@ from services.hindsight_service import (
 from services.retrieval_service import (
     RetrievalEngine
 )
+import services.llm_service
+
+from fastapi.middleware.cors import CORSMiddleware
+from services.stats_service import (
+    stats_service
+)
 
 load_dotenv()
 
@@ -79,6 +85,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 def root():
@@ -104,35 +120,6 @@ def health():
     }
 
 
-@app.post("/incidents/store")
-def store_incident(
-    incident: Incident
-):
-
-    try:
-
-        success = (
-            hindsight_service.retain(
-                incident
-            )
-        )
-
-        return {
-            "success":
-                success,
-
-            "incident_id":
-                incident.incident_id
-        }
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-
 @app.post("/incidents/diagnose")
 def diagnose_incident(
     incident: Incident
@@ -140,11 +127,12 @@ def diagnose_incident(
 
     try:
 
-        result = (
-            retrieval_engine
-            .diagnose(
-                incident
-            )
+        result = retrieval_engine.diagnose(
+            incident
+        )
+
+        stats_service.increment(
+            "diagnoses"
         )
 
         return result
@@ -155,7 +143,7 @@ def diagnose_incident(
             status_code=500,
             detail=str(e)
         )
-
+    
 
 @app.get(
     "/incidents/search"
@@ -212,22 +200,20 @@ def reflect_query(
 
     try:
 
+        stats_service.increment(
+            "reflect_queries"
+        )
+
         answer = (
             hindsight_service.client.reflect(
-                bank_id=
-                hindsight_service.bank_id,
-
-                query=
-                request.query
+                bank_id=hindsight_service.bank_id,
+                query=request.query
             )
         )
 
         return {
-            "query":
-                request.query,
-
-            "answer":
-                answer
+            "query": request.query,
+            "answer": answer
         }
 
     except Exception as e:
@@ -236,23 +222,7 @@ def reflect_query(
             status_code=500,
             detail=str(e)
         )
-    
 
-class AgentQuery(
-    BaseModel
-):
-    query: str
-
-@app.post("/agent/query")
-def query_agent(
-    request: AgentQuery
-):
-
-    return (
-        incident_agent.answer(
-            request.query
-        )
-    )
 
 
 class MentalModelRequest(
@@ -310,6 +280,87 @@ def list_models():
         return models
 
     except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.get("/dashboard/stats")
+def dashboard_stats():
+
+    stats = stats_service.read()
+
+    try:
+
+        models = (
+            hindsight_service.client
+            .list_mental_models(
+                bank_id=
+                hindsight_service.bank_id
+            )
+        )
+
+        mental_models = len(
+            models.items
+        )
+
+    except Exception:
+
+        mental_models = 0
+
+    return {
+
+        "total_incidents":
+            stats["incidents_stored"],
+
+        "stored_memories":
+            stats["incidents_stored"],
+
+        "diagnoses":
+            stats["diagnoses"],
+
+        "agent_queries":
+            stats["agent_queries"],
+
+        "reflect_queries":
+            stats.get(
+                "reflect_queries",
+                0
+            ),
+
+        "mental_models":
+            mental_models
+    }
+
+
+class DashboardQuery(BaseModel):
+    query: str
+
+import traceback
+
+@app.post("/api/query")
+def dashboard_query(
+    request: DashboardQuery
+):
+    try:
+
+        stats_service.increment(
+            "agent_queries"
+        )
+
+        return (
+            retrieval_engine
+            .dashboard_query(
+                request.query
+            )
+        )
+
+    except Exception as e:
+
+        logger.exception(
+            "Dashboard query failed"
+        )
 
         raise HTTPException(
             status_code=500,

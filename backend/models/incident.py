@@ -24,7 +24,19 @@ class IncidentStatus(str, Enum):
     RESOLVED = "resolved"
     ARCHIVED = "archived"
 
+from pydantic import BaseModel
+from typing import List
 
+
+class DashboardResponse(BaseModel):
+    answer: str
+    rootCause: str
+    resolution: str
+    confidence: int
+    postmortem: str
+    similarIncidents: List[dict]
+
+    
 class Incident(BaseModel):
 
     model_config = ConfigDict(
