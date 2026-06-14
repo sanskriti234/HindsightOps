@@ -22,17 +22,17 @@ const navigationItems = [
     icon: BarChart3,
   },
 
-  {
-    label: 'Incident Memory',
-    href: '/dashboard/incidents',
-    icon: Database,
-  },
+  // {
+  //   label: 'Incident Memory',
+  //   href: '/dashboard/incidents',
+  //   icon: Database,
+  // },
 
-  {
-    label: 'AI Diagnosis',
-    href: '/dashboard/diagnosis',
-    icon: Brain,
-  },
+  // {
+  //   label: 'AI Diagnosis',
+  //   href: '/dashboard/diagnosis',
+  //   icon: Brain,
+  // },
 
   {
     label: 'Reflect Insights',
@@ -40,23 +40,23 @@ const navigationItems = [
     icon: Zap,
   },
 
-  {
-    label: 'Mental Models',
-    href: '/dashboard/models',
-    icon: Database,
-  },
+  // {
+  //   label: 'Mental Models',
+  //   href: '/dashboard/models',
+  //   icon: Database,
+  // },
 
-  {
-    label: 'Agent Chat',
-    href: '/dashboard/agent',
-    icon: MessageSquare,
-  },
+  // {
+  //   label: 'Agent Chat',
+  //   href: '/dashboard/agent',
+  //   icon: MessageSquare,
+  // },
 
-  {
-    label: 'System Health',
-    href: '/dashboard/system',
-    icon: Activity,
-  },
+  // {
+  //   label: 'System Health',
+  //   href: '/dashboard/system',
+  //   icon: Activity,
+  // },
 ]
 
 export default function Sidebar() {

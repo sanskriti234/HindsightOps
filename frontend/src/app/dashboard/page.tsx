@@ -5,6 +5,7 @@ import { useState } from "react";
 import SimilarIncidentCard from "@/components/SimilarIncidentCard";
 import QueryAgent from "@/components/QueryAgent";
 import RCAResponse from "@/components/RCAResponse";
+import IncidentAnalytics from "@/components/IncidentAnalytics";
 
 export default function DashboardPage() {
   const [result, setResult] = useState<any>(null);
@@ -50,9 +51,9 @@ export default function DashboardPage() {
               Incident Analytics
             </h2>
 
-            <div className="h-64 flex items-center justify-center text-zinc-500 border border-dashed border-zinc-800 rounded-xl">
-              Analytics Chart
-            </div>
+            <IncidentAnalytics
+              analytics={result?.analytics}
+            />
           </motion.div>
 
         </div>
@@ -78,12 +79,7 @@ export default function DashboardPage() {
             {result?.similarIncidents?.map(
               (incident: any, index: number) => (
                 <SimilarIncidentCard
-                  key={
-                    incident.incident_id ||
-                    incident.memory_id ||
-                    incident.id ||
-                    index
-                  }
+                  key={`${incident.incident_id}-${index}`}
                   incident={incident}
                 />
               )

@@ -1,6 +1,6 @@
 {
   "incidents_stored": 0,
   "diagnoses": 0,
-  "agent_queries": 2,
-  "reflect_queries": 1
+  "agent_queries": 5,
+  "reflect_queries": 2
 }

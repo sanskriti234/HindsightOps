@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+from time import time
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
@@ -146,6 +147,66 @@ Postmortem:
             document_id=incident.incident_id,
             content=content,
             metadata=metadata
+        )
+
+        return True
+
+    def retain_agent_knowledge(
+    self,
+    query: str,
+    diagnosis: Dict[str, Any]
+) -> bool:
+
+        document_id = (
+            f"AI-{int(time.time())}"
+        )
+
+        content = f"""
+    AGENT GENERATED KNOWLEDGE
+
+    Query:
+    {query}
+
+    Diagnosis:
+    {diagnosis.get("diagnosis", "")}
+
+    Root Cause:
+    {diagnosis.get("rationale", "")}
+
+    Resolution:
+    {diagnosis.get("recommended_resolution", "")}
+
+    Confidence:
+    {diagnosis.get("confidence_score", 0)}
+    """.strip()
+
+        metadata = {
+
+            "category":
+                "AgentGeneratedKnowledge",
+
+            "query":
+                query,
+
+            "confidence":
+                str(
+                    diagnosis.get(
+                        "confidence_score",
+                        0
+                    )
+                )
+        }
+
+        self.client.retain(
+            bank_id=self.bank_id,
+            document_id=document_id,
+            content=content,
+            metadata=metadata
+        )
+
+        logger.info(
+            "Stored agent knowledge %s",
+            document_id
         )
 
         return True
