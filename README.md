@@ -1,10 +1,10 @@
-# Agent
+# HindsightOps - Incident Memory Agent
 
-AI-Powered Incident Intelligence & Root Cause Analysis Platform
+AI-Powered Incident Intelligence
 
 ## Overview
 
-Agent is an AI-powered incident response assistant designed to help engineers, SREs, and operations teams diagnose incidents faster by combining Large Language Models (LLMs) with organizational memory.
+HindsightOps is an AI-powered incident response assistant designed to help engineers, SREs, and operations teams diagnose incidents faster by combining Large Language Models (LLMs) with organizational memory.
 
 The platform retrieves historical incidents from a vector database, identifies similar past failures, analyzes patterns, and generates actionable Root Cause Analysis (RCA) reports with supporting evidence.
 
@@ -51,15 +51,6 @@ Automatically generates:
 * Impact Assessment
 * Resolution Actions
 * Preventive Measures
-
-### Analytics Dashboard
-
-Visual insights including:
-
-* Incident occurrence trends
-* Frequency analysis
-* Severity distribution
-* Historical incident comparisons
 
 ### Vector Memory Integration
 
@@ -108,7 +99,7 @@ Powered by Vectorize Hindsight:
 
               ┌───────────────────┐
               │ Dashboard Output  │
-              │ Analytics + RCA   │
+              │        RCA        │
               └───────────────────┘
 ```
 
@@ -134,7 +125,7 @@ Powered by Vectorize Hindsight:
 
 ### AI Layer
 
-* Gemini API
+* Openai API
 * Retrieval-Augmented Generation (RAG)
 * Prompt Engineering
 
